@@ -9,48 +9,66 @@ provider:
   region: us-east-1
   iam:
     role: arn:aws:iam::413507650058:role/LabRole
-  environment:
-    TABLA_PRODUCTOS: productos-${sls:stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+        - dynamodb:Query
+      Resource:
+        - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/productos-${sls:stage}
 
 functions:
   listarProductos:
     handler: handlers/listar_productos.handler
+    environment:
+      TABLE_NAME: productos-${sls:stage}
     events:
-      - httpApi:
-          path: /productos
-          method: GET
+      - http:
+          path: productos
+          method: get
           cors: true
 
   crearProducto:
     handler: handlers/crear_producto.handler
+    environment:
+      TABLE_NAME: productos-${sls:stage}
     events:
-      - httpApi:
-          path: /productos
-          method: POST
+      - http:
+          path: productos
+          method: post
           cors: true
 
   buscarProducto:
     handler: handlers/buscar_producto.handler
+    environment:
+      TABLE_NAME: productos-${sls:stage}
     events:
-      - httpApi:
-          path: /productos/{producto_id}
-          method: GET
+      - http:
+          path: productos/{producto_id}
+          method: get
           cors: true
 
   modificarProducto:
     handler: handlers/modificar_producto.handler
+    environment:
+      TABLE_NAME: productos-${sls:stage}
     events:
-      - httpApi:
-          path: /productos/{producto_id}
-          method: PUT
+      - http:
+          path: productos/{producto_id}
+          method: put
           cors: true
 
   eliminarProducto:
     handler: handlers/eliminar_producto.handler
+    environment:
+      TABLE_NAME: productos-${sls:stage}
     events:
-      - httpApi:
-          path: /productos/{producto_id}
-          method: DELETE
+      - http:
+          path: productos/{producto_id}
+          method: delete
           cors: true
 
 resources:

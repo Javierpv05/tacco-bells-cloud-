@@ -4,29 +4,56 @@ import uuid
 import boto3
 
 dynamodb = boto3.resource("dynamodb")
-tabla = dynamodb.Table(os.environ["TABLA_PRODUCTOS"])
+tabla = dynamodb.Table(os.environ["TABLE_NAME"])
 
 
 def handler(event, context):
-    body = json.loads(event.get("body") or "{}")
-    tenant_id = body.get("tenant_id", "taco-bell")
+    try:
+        body = json.loads(event.get("body") or "{}")
 
-    producto = {
-        "tenant_id": tenant_id,
-        "producto_id": str(uuid.uuid4()),
-        "nombre": body.get("nombre"),
-        "precio": body.get("precio"),
-        "descripcion": body.get("descripcion", ""),
-        "disponible": body.get("disponible", True),
-    }
+        tenant_id = body.get("tenant_id") or "taco-bell"
+        nombre = body.get("nombre")
+        precio = body.get("precio")
 
-    tabla.put_item(Item=producto)
+        if not nombre or precio is None:
+            return {
+                "statusCode": 400,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                "body": json.dumps(
+                    {"error": "Los campos 'nombre' y 'precio' son obligatorios"}
+                ),
+            }
 
-    return {
-        "statusCode": 201,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-        },
-        "body": json.dumps({"mensaje": "Producto creado", "producto": producto}),
-    }
+        producto = {
+            "tenant_id": tenant_id,
+            "producto_id": uuid.uuid4().hex,
+            "nombre": nombre,
+            "precio": precio,
+            "descripcion": body.get("descripcion", ""),
+            "disponible": bool(body.get("disponible", True)),
+        }
+
+        tabla.put_item(Item=producto)
+
+        return {
+            "statusCode": 201,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+            },
+            "body": json.dumps(
+                {"mensaje": "Producto creado", "producto": producto}
+            ),
+        }
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+            },
+            "body": json.dumps({"error": f"Error al crear producto: {str(e)}"}),
+        }

@@ -3,52 +3,97 @@ import os
 import boto3
 
 dynamodb = boto3.resource("dynamodb")
-tabla = dynamodb.Table(os.environ["TABLA_PRODUCTOS"])
+tabla = dynamodb.Table(os.environ["TABLE_NAME"])
 
 CAMPOS_PERMITIDOS = ["nombre", "precio", "descripcion", "disponible"]
 
 
 def handler(event, context):
-    path_params = event.get("pathParameters") or {}
-    query_params = event.get("queryStringParameters") or {}
-    body = json.loads(event.get("body") or "{}")
+    try:
+        path_params = event.get("pathParameters") or {}
+        query_params = event.get("queryStringParameters") or {}
+        body = json.loads(event.get("body") or "{}")
 
-    tenant_id = query_params.get("tenant_id", "taco-bell")
-    producto_id = path_params.get("producto_id")
+        tenant_id = (query_params or {}).get("tenant_id") or "taco-bell"
+        producto_id = path_params.get("producto_id")
 
-    update_parts = []
-    attr_names = {}
-    attr_values = {}
+        if not producto_id:
+            return {
+                "statusCode": 400,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                "body": json.dumps(
+                    {
+                        "error": "El parametro 'producto_id' es obligatorio en la ruta"
+                    }
+                ),
+            }
 
-    for campo in CAMPOS_PERMITIDOS:
-        if campo in body:
-            update_parts.append(f"#{campo} = :{campo}")
-            attr_names[f"#{campo}"] = campo
-            attr_values[f":{campo}"] = body[campo]
+        update_parts = []
+        attr_names = {}
+        attr_values = {}
 
-    if not update_parts:
+        for campo in CAMPOS_PERMITIDOS:
+            if campo in body:
+                update_parts.append(f"#{campo} = :{campo}")
+                attr_names[f"#{campo}"] = campo
+
+                val = body[campo]
+                if campo == "disponible":
+                    val = bool(val)
+                attr_values[f":{campo}"] = val
+
+        if not update_parts:
+            return {
+                "statusCode": 400,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                "body": json.dumps(
+                    {"error": "No se enviaron campos válidos para actualizar"}
+                ),
+            }
+
+        try:
+            respuesta = tabla.update_item(
+                Key={"tenant_id": tenant_id, "producto_id": producto_id},
+                UpdateExpression="SET " + ", ".join(update_parts),
+                ExpressionAttributeNames=attr_names,
+                ExpressionAttributeValues=attr_values,
+                ConditionExpression="attribute_exists(tenant_id) AND attribute_exists(producto_id)",
+                ReturnValues="ALL_NEW",
+            )
+        except dynamodb.meta.client.exceptions.ConditionalCheckFailedException:
+            return {
+                "statusCode": 404,
+                "headers": {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                "body": json.dumps(
+                    {"error": "Producto no encontrado para actualizar"}
+                ),
+            }
+
         return {
-            "statusCode": 400,
+            "statusCode": 200,
             "headers": {
                 "Content-Type": "application/json",
                 "Access-Control-Allow-Origin": "*",
             },
-            "body": json.dumps({"error": "No se enviaron campos válidos para actualizar"}),
+            "body": json.dumps({"producto": respuesta["Attributes"]}),
         }
-
-    respuesta = tabla.update_item(
-        Key={"tenant_id": tenant_id, "producto_id": producto_id},
-        UpdateExpression="SET " + ", ".join(update_parts),
-        ExpressionAttributeNames=attr_names,
-        ExpressionAttributeValues=attr_values,
-        ReturnValues="ALL_NEW",
-    )
-
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-        },
-        "body": json.dumps({"producto": respuesta["Attributes"]}),
-    }
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "headers": {
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+            },
+            "body": json.dumps(
+                {"error": f"Error al modificar producto: {str(e)}"}
+            ),
+        }
