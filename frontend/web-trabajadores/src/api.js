@@ -7,7 +7,7 @@ const TENANT_ID    = import.meta.env.VITE_TENANT_ID || 'taco-bell'
 // ── Utils ─────────────────────────────────────────────────────────────────
 const getHeaders = () => {
   const token = localStorage.getItem('id_token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
+  return token ? { Authorization: token } : {}
 }
 
 // ── ms-pedidos ────────────────────────────────────────────────────────────
