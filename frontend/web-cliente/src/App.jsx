@@ -16,7 +16,7 @@ export default function App() {
         </Routes>
       </main>
       <footer className="text-center py-3" style={{ color: 'var(--tb-muted)', fontSize: '.8rem', borderTop: '1px solid var(--tb-border)' }}>
-        © 2024 Taco Bell Pedidos Online · Powered by AWS Serverless
+        © 2024 Madam Tusan Pedidos Online · Powered by AWS Serverless
       </footer>
     </div>
   )

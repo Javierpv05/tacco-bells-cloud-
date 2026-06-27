@@ -7,15 +7,19 @@
   --tb-blue:      #2563eb; /* Azul oscuro */
   --tb-orange:    #ea580c; /* Naranja oscuro */
   --tb-purple:    #6366f1; /* Índigo */
-  --tb-bg:        #0f172a; /* Fondo pizarra muy profesional */
-  --tb-surface:   #1e293b; /* Superficie pizarra */
-  --tb-surface2:  #334155; /* Superficie secundaria */
-  --tb-surface3:  #475569;
-  --tb-border:    #334155; /* Bordes */
-  --tb-text:      #f8fafc; /* Texto claro */
-  --tb-muted:     #94a3b8; /* Texto atenuado */
+  --app-bg:       #111111; /* Fondo oscuro */
+  --app-surface:  #1e1e1e; /* Superficie de tarjetas y paneles */
+  --app-surface2: #2a2a2a; /* Superficie secundaria */
+  --app-border:   #333333; /* Bordes suaves */
+  --color-primary:#dc2626; /* Rojo corporativo Madam Tusan */
+  --color-primary-hover: #b91c1c;
+  --color-accent: #fbbf24;  /* Dorado */
+  --color-warn:   #f59e0b;    /* Ámbar para advertencias */
+  --color-text:   #f3f4f6;    /* Blanco grisáceo para lectura cómoda */
+  --color-muted:  #9ca3af;   /* Texto secundario */
   --radius:       10px;
-  --radius-lg:    12px;
+  --radius-lg:    14px;
+  --shadow:       0 4px 18px rgba(0, 0, 0, 0.45);
   --font:         'Outfit', sans-serif;
   --sidebar-w:    230px;
 }

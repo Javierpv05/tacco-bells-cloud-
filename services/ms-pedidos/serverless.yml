@@ -46,9 +46,6 @@ functions:
           path: pedidos/{pedido_id}
           method: get
           cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId: !Ref ApiGatewayAuthorizer
 
   listarPedidos:
     handler: handlers/listar_pedidos.handler

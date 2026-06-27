@@ -1,12 +1,12 @@
 /* ── Paleta de Colores Profesional y Refinada ─────────────────────── */
 :root {
-  --app-bg:       #0b0f19; /* Fondo oscuro azulado sutil */
-  --app-surface:  #151c2c; /* Superficie de tarjetas y paneles */
-  --app-surface2: #1e293b; /* Superficie secundaria */
-  --app-border:   #222f47; /* Bordes suaves */
-  --color-primary:#3b82f6; /* Azul corporativo */
-  --color-primary-hover: #2563eb;
-  --color-accent: #10b981;  /* Verde menta suave */
+  --app-bg:       #111111; /* Fondo oscuro */
+  --app-surface:  #1e1e1e; /* Superficie de tarjetas y paneles */
+  --app-surface2: #2a2a2a; /* Superficie secundaria */
+  --app-border:   #333333; /* Bordes suaves */
+  --color-primary:#dc2626; /* Rojo corporativo Madam Tusan */
+  --color-primary-hover: #b91c1c;
+  --color-accent: #fbbf24;  /* Dorado */
   --color-warn:   #f59e0b;    /* Ámbar para advertencias */
   --color-text:   #f3f4f6;    /* Blanco grisáceo para lectura cómoda */
   --color-muted:  #9ca3af;   /* Texto secundario */
