@@ -111,6 +111,16 @@ resources:
           # Cross-stack reference: ms-auth debe estar desplegado primero
           - ${cf:ms-auth-${sls:stage}.UserPoolArn}
 
+    # ── CORS en respuestas nativas de error (401/403 del Authorizer) ───────
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId: !Ref ApiGatewayRestApi
+
     # ── Tabla DynamoDB ────────────────────────────────────────────────────
     TablaPedidos:
       Type: AWS::DynamoDB::Table
