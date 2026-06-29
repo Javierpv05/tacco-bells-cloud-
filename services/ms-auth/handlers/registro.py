@@ -8,7 +8,7 @@ Body esperado:
     "nombre":   "Juan Pérez",
     "telefono": "987654321",    (opcional)
     "rol":      "cliente" | "trabajador",
-    "tenant_id": "madam-tusan"  (opcional, default madam-tusan)
+    "tenant_id": "popeyes"  (opcional, default popeyes)
 }
 
 Flujo:
@@ -27,7 +27,7 @@ dynamodb = boto3.resource("dynamodb")
 tabla = dynamodb.Table(os.environ["TABLA_USUARIOS"])
 
 APP_CLIENT_ID = os.environ["APP_CLIENT_ID"]
-TENANT_DEFAULT = "madam-tusan"
+TENANT_DEFAULT = "popeyes"
 ROLES_VALIDOS = {"cliente", "trabajador"}
 
 

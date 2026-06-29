@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-seed_productos.py — Inserta los productos de Madam Tusan en DynamoDB.
+seed_productos.py — Inserta los productos de Popeyes en DynamoDB.
 
 Uso:
-    python scripts/seed_productos.py [--stage dev|prod] [--tenant madam-tusan]
+    python scripts/seed_productos.py [--stage dev|prod] [--tenant popeyes]
 
 Requiere credenciales AWS configuradas (mismo perfil que el deploy de Serverless).
 """
@@ -12,89 +12,89 @@ import uuid
 import decimal
 import boto3
 
-# ── Catálogo de Madam Tusan ────────────────────────────────────────────────
+# ── Catálogo de Popeyes ─────────────────────────────────────────────────────
 PRODUCTOS = [
     {
-        "nombre": "Arroz Chaufa de Pollo",
-        "descripcion": "Arroz salteado al wok con pollo tierno, huevo, cebolla china y sillao. Clásico infaltable.",
-        "precio": 22.00,
-        "categoria": "Arroces",
-        "disponible": True,
-    },
-    {
-        "nombre": "Arroz Chaufa Marino",
-        "descripcion": "Chaufa con langostinos, pulpo, calamares y mariscos frescos salteados al wok.",
-        "precio": 32.00,
-        "categoria": "Arroces",
-        "disponible": True,
-    },
-    {
-        "nombre": "Tallarín Saltado de Res",
-        "descripcion": "Fideos de trigo salteados con tiras de res, verduras crujientes y salsa de ostión.",
-        "precio": 26.00,
-        "categoria": "Tallarines",
-        "disponible": True,
-    },
-    {
-        "nombre": "Tallarín Saltado de Pollo",
-        "descripcion": "Fideos salteados al wok con pollo, pimiento, cebolla y salsa especial de la casa.",
-        "precio": 22.00,
-        "categoria": "Tallarines",
-        "disponible": True,
-    },
-    {
-        "nombre": "Wantán Frito (8 piezas)",
-        "descripcion": "Dumplings crocantes rellenos de cerdo y camarón. Servidos con salsa agridulce.",
-        "precio": 16.00,
-        "categoria": "Entradas",
-        "disponible": True,
-    },
-    {
-        "nombre": "Sopa Wantán",
-        "descripcion": "Caldo concentrado de pollo con wantanes rellenos, cebolla china y fideos de arroz.",
-        "precio": 18.00,
-        "categoria": "Sopas",
-        "disponible": True,
-    },
-    {
-        "nombre": "Sopa San Fan",
-        "descripcion": "Sopa de fideos de vidrio con cerdo deshilachado, brotes de soja y caldo de res.",
-        "precio": 19.00,
-        "categoria": "Sopas",
-        "disponible": True,
-    },
-    {
-        "nombre": "Pato al Tamarindo",
-        "descripcion": "Muslo de pato confitado con salsa de tamarindo, jengibre y cinco especias chinas.",
-        "precio": 42.00,
-        "categoria": "Especialidades",
-        "disponible": True,
-    },
-    {
-        "nombre": "Lomo Saltado Fusión",
-        "descripcion": "Lomo de res con papas fritas, tomate, cebolla y un toque de sillao y pisco.",
-        "precio": 35.00,
-        "categoria": "Especialidades",
-        "disponible": True,
-    },
-    {
-        "nombre": "Pollo Chi Jau Kay",
-        "descripcion": "Pollo crujiente bañado en salsa de frijol negro con ajonjolí y cebolla caramelizada.",
-        "precio": 28.00,
-        "categoria": "Especialidades",
-        "disponible": True,
-    },
-    {
-        "nombre": "Dim Sum Mixto (6 piezas)",
-        "descripcion": "Selección de dim sum al vapor: har gow, siu mai y bao de cerdo. Servicio de té incluido.",
+        "nombre": "Pollo Frito Clásico (3 piezas)",
+        "descripcion": "Pollo frito sazonado con la receta original de Louisiana, crocante por fuera y jugoso por dentro.",
         "precio": 24.00,
-        "categoria": "Entradas",
+        "categoria": "Pollo",
         "disponible": True,
     },
     {
-        "nombre": "Helado de Té Verde Matcha",
-        "descripcion": "Postre artesanal de matcha japonés con salsa de mango y crocante de sésamo.",
-        "precio": 12.00,
+        "nombre": "Pollo Frito Picante (3 piezas)",
+        "descripcion": "Pollo frito con el toque picante característico de Popeyes, marinado por horas.",
+        "precio": 25.00,
+        "categoria": "Pollo",
+        "disponible": True,
+    },
+    {
+        "nombre": "Tenders de Pollo (5 piezas)",
+        "descripcion": "Tiras de pollo apanadas y fritas, crocantes, servidas con tu salsa favorita.",
+        "precio": 21.00,
+        "categoria": "Pollo",
+        "disponible": True,
+    },
+    {
+        "nombre": "Sandwich Clásico de Pollo",
+        "descripcion": "Filete de pollo crocante, pan brioche, lechuga y mayonesa, receta original de Popeyes.",
+        "precio": 18.50,
+        "categoria": "Sandwiches",
+        "disponible": True,
+    },
+    {
+        "nombre": "Sandwich Picante de Pollo",
+        "descripcion": "Filete de pollo crocante con marinado picante, pan brioche y pickles.",
+        "precio": 19.50,
+        "categoria": "Sandwiches",
+        "disponible": True,
+    },
+    {
+        "nombre": "Camarones Apanados (8 piezas)",
+        "descripcion": "Camarones empanizados y fritos, crocantes, servidos con salsa cocktail.",
+        "precio": 26.00,
+        "categoria": "Mariscos",
+        "disponible": True,
+    },
+    {
+        "nombre": "Cajun Fries",
+        "descripcion": "Papas fritas sazonadas con la mezcla de especias cajún de la casa.",
+        "precio": 10.00,
+        "categoria": "Acompañamientos",
+        "disponible": True,
+    },
+    {
+        "nombre": "Red Beans & Rice",
+        "descripcion": "Arroz con frijoles rojos al estilo Louisiana, guarnición clásica de Popeyes.",
+        "precio": 9.50,
+        "categoria": "Acompañamientos",
+        "disponible": True,
+    },
+    {
+        "nombre": "Buñuelos (Biscuits, 2 piezas)",
+        "descripcion": "Panecillos suaves recién horneados, ideales para acompañar el pollo.",
+        "precio": 7.00,
+        "categoria": "Acompañamientos",
+        "disponible": True,
+    },
+    {
+        "nombre": "Combo Familiar (8 piezas + 2 acompañamientos)",
+        "descripcion": "8 piezas de pollo frito a elección con 2 acompañamientos grandes para compartir.",
+        "precio": 65.00,
+        "categoria": "Combos",
+        "disponible": True,
+    },
+    {
+        "nombre": "Mac & Cheese",
+        "descripcion": "Macarrones cremosos con queso fundido, guarnición clásica americana.",
+        "precio": 11.00,
+        "categoria": "Acompañamientos",
+        "disponible": True,
+    },
+    {
+        "nombre": "Pie de Manzana",
+        "descripcion": "Postre individual de manzana horneado, crocante por fuera y caliente por dentro.",
+        "precio": 8.00,
         "categoria": "Postres",
         "disponible": True,
     },
@@ -106,7 +106,7 @@ def seed(stage: str, tenant_id: str) -> None:
     dynamodb = boto3.resource("dynamodb", region_name="us-east-1")
     tabla = dynamodb.Table(table_name)
 
-    print(f"\n🍜 Insertando {len(PRODUCTOS)} productos de Madam Tusan")
+    print(f"\n🍗 Insertando {len(PRODUCTOS)} productos de Popeyes")
     print(f"   Tabla  : {table_name}")
     print(f"   Tenant : {tenant_id}\n")
 
@@ -135,8 +135,8 @@ def seed(stage: str, tenant_id: str) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Seed de productos Madam Tusan en DynamoDB")
+    parser = argparse.ArgumentParser(description="Seed de productos Popeyes en DynamoDB")
     parser.add_argument("--stage", default="dev", choices=["dev", "prod"], help="Stage de despliegue (default: dev)")
-    parser.add_argument("--tenant", default="madam-tusan", help="Tenant ID (default: madam-tusan)")
+    parser.add_argument("--tenant", default="popeyes", help="Tenant ID (default: popeyes)")
     args = parser.parse_args()
     seed(args.stage, args.tenant)

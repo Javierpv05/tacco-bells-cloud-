@@ -8,7 +8,7 @@ provider:
   runtime: python3.12
   region: us-east-1
   iam:
-    role: arn:aws:iam::777986470706:role/LabRole
+    role: arn:aws:iam::${aws:accountId}:role/LabRole
   environment:
     USER_POOL_ID: !Ref CognitoUserPool
     APP_CLIENT_ID: !Ref CognitoUserPoolClient
@@ -64,7 +64,7 @@ resources:
     CognitoUserPool:
       Type: AWS::Cognito::UserPool
       Properties:
-        UserPoolName: madamtusan-pool-${sls:stage}
+        UserPoolName: popeyes-pool-${sls:stage}
         UsernameAttributes:
           - email
         AutoVerifiedAttributes:
@@ -96,7 +96,7 @@ resources:
     CognitoUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
-        ClientName: madamtusan-web-client-${sls:stage}
+        ClientName: popeyes-web-client-${sls:stage}
         UserPoolId: !Ref CognitoUserPool
         GenerateSecret: false
         ExplicitAuthFlows:

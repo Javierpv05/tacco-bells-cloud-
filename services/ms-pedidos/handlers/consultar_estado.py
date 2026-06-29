@@ -16,7 +16,7 @@ def handler(event, context):
         query_params = event.get("queryStringParameters") or {}
 
         pedido_id = path_params.get("pedido_id")
-        tenant_id = query_params.get("tenant_id", "madam-tusan")
+        tenant_id = query_params.get("tenant_id", "popeyes")
 
         if not pedido_id:
             log_event("WARN", "El parametro pedido_id es obligatorio")

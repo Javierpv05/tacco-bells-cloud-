@@ -14,7 +14,7 @@ ESTADO_PEDIDO = "ENTREGADO"
 def handler(event, context):
     try:
         pedido = event.get("pedido", event)
-        tenant_id = pedido.get("tenant_id", "madam-tusan")
+        tenant_id = pedido.get("tenant_id", "popeyes")
         pedido_id = pedido.get("pedido_id", "desconocido")
 
         tabla_pedidos.update_item(

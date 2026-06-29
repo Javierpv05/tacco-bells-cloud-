@@ -14,9 +14,16 @@ FN_NAME="guardar-estado"
 GW_NAME="api-rappi"
 DEPLOYMENT_NAME="rappi-deployment"
 PATH_PREFIX="/rappi"
-AWS_URL="https://xoogztranc.execute-api.us-east-1.amazonaws.com/dev/pedidos"
+AWS_URL="https://xoogztranc.execute-api.us-east-1.amazonaws.com/dev/pedidos/externos"
 
-TOKEN="eyJraWQiOiJqWHZVRUI4OExKRTB1TjByZEIvVGpISXNDSEN5dGg5SnBLQXV5MDlLbCtjPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJkNGE4ODQzOC03MDcxLTcwN2ItMTgzZC1jNDU1ODYxY2YxNzgiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImlzcyI6Imh0dHBzOi8vY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb20vdXMtZWFzdC0xXzVtMU5sNUlaOCIsImNvZ25pdG86dXNlcm5hbWUiOiJkNGE4ODQzOC03MDcxLTcwN2ItMTgzZC1jNDU1ODYxY2YxNzgiLCJjdXN0b206dGVuYW50X2lkIjoibWFkYW0tdHVzYW4iLCJvcmlnaW5fanRpIjoiNDhkZWFjNWUtZTdlZS00MzI3LTk0MjEtYmIzYWU0YTRjYzkwIiwiYXVkIjoiM25sMGg2dDJlMmJwNDN1OGZhNjNpZ3ZtaXYiLCJldmVudF9pZCI6ImVmYmU2NDZhLTI4ODEtNDRhOS1iYmU0LWIxNjhiOWZlNTIxNSIsInRva2VuX3VzZSI6ImlkIiwiYXV0aF90aW1lIjoxNzgyNTA4NjU5LCJuYW1lIjoidHJhYmFqYWRvcjEiLCJleHAiOjE3ODI1MTIyNTksImlhdCI6MTc4MjUwODY1OSwianRpIjoiMGExMWYxZTgtMjA0MS00MDdlLWFlZmQtOTE1MGY1ZWNiYjdkIiwiZW1haWwiOiJqcHYyMjk3QGdtYWlsLmNvbSJ9.qn1sGKZ5PlScRONhRzZII7tosseG5o7isebtKFEUBy72w8Ioz7FpmwzbEDJ6CXaol2PXFDCsHrPlhG9YVRuzt4S8UslAzDT5WCkFvnjgeeHURc-ysiH4Zi5SBrHeUFetKponWYTyMvMa-IYrBwfcL1cRfdBzspeasIM9Abuml6-Jw-ttY3JPDn_AHioYgagvG3OxTY_5sLIucCOBe4D0DmI8KJ2XzfRykRPQ_4Qr2c-s9zptomizUbPgdihzwWCKj1y0ycNgIGuHWCMk598sLtQMvIwqm7XfH3_vJDpY6G6QqJ2Ybcm8cIrN0U5u0TpcrNT_45Mjm8Xjh1gY8xjJ-w"
+ROOT_ENV="$(cd "$(dirname "$0")/../.." && pwd)/.env"
+if [ -f "$ROOT_ENV" ]; then
+    set -a; source "$ROOT_ENV"; set +a
+fi
+if [ -z "$RAPPI_API_KEY" ]; then
+    echo "ERROR: RAPPI_API_KEY no esta definida. Copia .env.example a .env en la raiz del repo y genera un valor (openssl rand -hex 32). Debe ser EL MISMO valor usado en services/ms-pedidos." >&2
+    exit 1
+fi
 
 echo "Configuración:"
 echo "- Compartment: $COMPARTMENT_ID"
@@ -78,8 +85,8 @@ cat <<EOF > deployment-spec.json
           "setHeaders": {
             "items": [
               {
-                "name": "Authorization",
-                "values": ["Bearer $TOKEN"],
+                "name": "x-api-key",
+                "values": ["$RAPPI_API_KEY"],
                 "ifExists": "OVERWRITE"
               }
             ]

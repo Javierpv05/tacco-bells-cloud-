@@ -15,7 +15,7 @@ def handler(event, context):
         query_params = event.get("queryStringParameters") or {}
         body = json.loads(event.get("body") or "{}")
 
-        tenant_id = (query_params or {}).get("tenant_id") or "madam-tusan"
+        tenant_id = (query_params or {}).get("tenant_id") or "popeyes"
         producto_id = path_params.get("producto_id")
 
         if not producto_id:

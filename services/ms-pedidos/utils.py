@@ -1,5 +1,7 @@
 import json
 import decimal
+import uuid
+from datetime import datetime, timezone
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
@@ -36,3 +38,56 @@ def log_event(level, message, data=None):
     if data is not None:
         log_entry['data'] = data
     print(json.dumps(log_entry, cls=DecimalEncoder))
+
+
+def crear_pedido_core(tabla, events_client, event_bus_name, body, origen):
+    """
+    Logica compartida entre el canal publico (web) y el canal externo
+    (Rappi/OCI, protegido con API Key). 'origen' lo decide el handler segun
+    la ruta invocada, nunca se confia en un valor enviado por el cliente.
+    """
+    tenant_id = body.get("tenant_id")
+    cliente_nombre = body.get("cliente_nombre")
+    items = body.get("items", [])
+    total = body.get("total")
+
+    if not tenant_id or not cliente_nombre or not items or total is None:
+        raise ValueError("Los campos 'tenant_id', 'cliente_nombre', 'items' y 'total' son obligatorios")
+
+    pedido_id = uuid.uuid4().hex
+    fecha_creacion = datetime.now(timezone.utc).isoformat()
+    estado = "RECIBIDO"
+
+    pedido = {
+        "tenant_id": tenant_id,
+        "pedido_id": pedido_id,
+        "cliente_nombre": cliente_nombre,
+        "items": convert_to_decimal(items),
+        "total": convert_to_decimal(total),
+        "estado": estado,
+        "fecha_creacion": fecha_creacion,
+        "tenant_estado": f"{tenant_id}#{estado}",
+        "origen": origen,
+    }
+
+    tabla.put_item(Item=pedido)
+
+    events_client.put_events(
+        Entries=[
+            {
+                "Source": "pedidos.app",
+                "DetailType": "PedidoCreado",
+                "Detail": json.dumps(pedido, cls=DecimalEncoder),
+                "EventBusName": event_bus_name,
+            }
+        ]
+    )
+
+    log_event("INFO", "Pedido creado y evento publicado", {"pedido_id": pedido_id, "origen": origen})
+
+    return {
+        "mensaje": "Pedido creado exitosamente",
+        "pedido_id": pedido_id,
+        "estado": estado,
+        "fecha_creacion": fecha_creacion,
+    }

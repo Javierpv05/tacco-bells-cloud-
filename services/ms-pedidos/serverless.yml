@@ -8,7 +8,7 @@ provider:
   runtime: python3.12
   region: us-east-1
   iam:
-    role: arn:aws:iam::777986470706:role/LabRole
+    role: arn:aws:iam::${aws:accountId}:role/LabRole
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -24,6 +24,17 @@ provider:
         - events:PutEvents
       Resource:
         - !Sub arn:aws:events:${AWS::Region}:${AWS::AccountId}:event-bus/pedidos-bus-${sls:stage}
+  apiGateway:
+    apiKeys:
+      - name: rappi-key-${sls:stage}
+        value: ${env:RAPPI_API_KEY}
+    usagePlan:
+      quota:
+        limit: 5000
+        period: MONTH
+      throttle:
+        burstLimit: 20
+        rateLimit: 10
 
 functions:
   crearPedido:
@@ -36,6 +47,19 @@ functions:
           path: pedidos
           method: post
           cors: true
+
+  # ── Canal protegido para integraciones externas (Rappi/OCI) ─────────────
+  crearPedidoExterno:
+    handler: handlers/crear_pedido_externo.handler
+    environment:
+      TABLE_NAME: pedidos-${sls:stage}
+      EVENT_BUS_NAME: pedidos-bus-${sls:stage}
+    events:
+      - http:
+          path: pedidos/externos
+          method: post
+          cors: true
+          private: true
 
   consultarEstado:
     handler: handlers/consultar_estado.handler
@@ -84,7 +108,8 @@ resources:
         IdentitySource: method.request.header.Authorization
         RestApiId: !Ref ApiGatewayRestApi
         ProviderARNs:
-          - arn:aws:cognito-idp:us-east-1:777986470706:userpool/us-east-1_5m1Nl5IZ8
+          # Cross-stack reference: ms-auth debe estar desplegado primero
+          - ${cf:ms-auth-${sls:stage}.UserPoolArn}
 
     # ── Tabla DynamoDB ────────────────────────────────────────────────────
     TablaPedidos:

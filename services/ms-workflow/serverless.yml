@@ -11,7 +11,7 @@ provider:
   runtime: python3.12
   region: us-east-1
   iam:
-    role: arn:aws:iam::777986470706:role/LabRole
+    role: arn:aws:iam::${aws:accountId}:role/LabRole
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -76,14 +76,18 @@ functions:
     environment:
       TABLA_PEDIDOS: pedidos-${sls:stage}
 
+  # ── Invocada por Step Functions (Task simple, solo si origen == rappi) ───
+  notificarOciTask:
+    handler: handlers/notificar_oci_task.handler
+
 # ── Step Function ─────────────────────────────────────────────────────────
 stepFunctions:
   stateMachines:
     workflowPedido:
       name: WorkflowPedido-${sls:stage}
-      role: arn:aws:iam::777986470706:role/LabRole
+      role: arn:aws:iam::${aws:accountId}:role/LabRole
       definition:
-        Comment: "Flujo de pedidos: Cocina → Despacho → Reparto (Wait for Callback)"
+        Comment: "Flujo de pedidos: Cocina -> Despacho -> Reparto -> Entregado (Wait for Callback), con notificacion condicional a OCI/Rappi y reintentos"
         StartAt: Cocina
         States:
           Cocina:
@@ -98,11 +102,45 @@ stepFunctions:
                 taskToken.$: "$$.Task.Token"
             ResultPath: "$.resultadoCocina"
             TimeoutSeconds: 3600
-            Next: Despacho
+            Retry:
+              - ErrorEquals: ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"]
+                IntervalSeconds: 2
+                MaxAttempts: 3
+                BackoffRate: 2.0
             Catch:
               - ErrorEquals: ["States.ALL"]
                 ResultPath: "$.error"
                 Next: PedidoFallido
+            Next: EsRappi_Cocina
+
+          EsRappi_Cocina:
+            Type: Choice
+            Choices:
+              - Variable: "$.origen"
+                StringEquals: "rappi"
+                Next: NotificarOCI_Cocina
+            Default: Despacho
+
+          NotificarOCI_Cocina:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            Parameters:
+              FunctionName: !Sub >-
+                arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:service}-${sls:stage}-notificarOciTask
+              Payload:
+                pedido_id.$: "$.pedido_id"
+                estado: "EN_COCINA"
+            ResultPath: "$.notificacionCocina"
+            Retry:
+              - ErrorEquals: ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"]
+                IntervalSeconds: 2
+                MaxAttempts: 2
+                BackoffRate: 2.0
+            Catch:
+              - ErrorEquals: ["States.ALL"]
+                ResultPath: "$.errorNotificacionCocina"
+                Next: Despacho
+            Next: Despacho
 
           Despacho:
             Type: Task
@@ -116,11 +154,45 @@ stepFunctions:
                 taskToken.$: "$$.Task.Token"
             ResultPath: "$.resultadoDespacho"
             TimeoutSeconds: 3600
-            Next: Reparto
+            Retry:
+              - ErrorEquals: ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"]
+                IntervalSeconds: 2
+                MaxAttempts: 3
+                BackoffRate: 2.0
             Catch:
               - ErrorEquals: ["States.ALL"]
                 ResultPath: "$.error"
                 Next: PedidoFallido
+            Next: EsRappi_Despacho
+
+          EsRappi_Despacho:
+            Type: Choice
+            Choices:
+              - Variable: "$.origen"
+                StringEquals: "rappi"
+                Next: NotificarOCI_Despacho
+            Default: Reparto
+
+          NotificarOCI_Despacho:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            Parameters:
+              FunctionName: !Sub >-
+                arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:service}-${sls:stage}-notificarOciTask
+              Payload:
+                pedido_id.$: "$.pedido_id"
+                estado: "EN_DESPACHO"
+            ResultPath: "$.notificacionDespacho"
+            Retry:
+              - ErrorEquals: ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"]
+                IntervalSeconds: 2
+                MaxAttempts: 2
+                BackoffRate: 2.0
+            Catch:
+              - ErrorEquals: ["States.ALL"]
+                ResultPath: "$.errorNotificacionDespacho"
+                Next: Reparto
+            Next: Reparto
 
           Reparto:
             Type: Task
@@ -134,11 +206,45 @@ stepFunctions:
                 taskToken.$: "$$.Task.Token"
             ResultPath: "$.resultadoReparto"
             TimeoutSeconds: 7200
-            Next: Entregado
+            Retry:
+              - ErrorEquals: ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"]
+                IntervalSeconds: 2
+                MaxAttempts: 3
+                BackoffRate: 2.0
             Catch:
               - ErrorEquals: ["States.ALL"]
                 ResultPath: "$.error"
                 Next: PedidoFallido
+            Next: EsRappi_Reparto
+
+          EsRappi_Reparto:
+            Type: Choice
+            Choices:
+              - Variable: "$.origen"
+                StringEquals: "rappi"
+                Next: NotificarOCI_Reparto
+            Default: Entregado
+
+          NotificarOCI_Reparto:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            Parameters:
+              FunctionName: !Sub >-
+                arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:service}-${sls:stage}-notificarOciTask
+              Payload:
+                pedido_id.$: "$.pedido_id"
+                estado: "EN_REPARTO"
+            ResultPath: "$.notificacionReparto"
+            Retry:
+              - ErrorEquals: ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"]
+                IntervalSeconds: 2
+                MaxAttempts: 2
+                BackoffRate: 2.0
+            Catch:
+              - ErrorEquals: ["States.ALL"]
+                ResultPath: "$.errorNotificacionReparto"
+                Next: Entregado
+            Next: Entregado
 
           Entregado:
             Type: Task
@@ -150,11 +256,40 @@ stepFunctions:
                 paso: "ENTREGADO"
                 pedido.$: "$"
             ResultPath: "$.resultadoEntregado"
-            Next: PedidoEntregado
             Catch:
               - ErrorEquals: ["States.ALL"]
                 ResultPath: "$.error"
                 Next: PedidoFallido
+            Next: EsRappi_Entregado
+
+          EsRappi_Entregado:
+            Type: Choice
+            Choices:
+              - Variable: "$.origen"
+                StringEquals: "rappi"
+                Next: NotificarOCI_Entregado
+            Default: PedidoEntregado
+
+          NotificarOCI_Entregado:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke
+            Parameters:
+              FunctionName: !Sub >-
+                arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:service}-${sls:stage}-notificarOciTask
+              Payload:
+                pedido_id.$: "$.pedido_id"
+                estado: "ENTREGADO"
+            ResultPath: "$.notificacionEntregado"
+            Retry:
+              - ErrorEquals: ["Lambda.ServiceException", "Lambda.AWSLambdaException", "Lambda.SdkClientException"]
+                IntervalSeconds: 2
+                MaxAttempts: 2
+                BackoffRate: 2.0
+            Catch:
+              - ErrorEquals: ["States.ALL"]
+                ResultPath: "$.errorNotificacionEntregado"
+                Next: PedidoEntregado
+            Next: PedidoEntregado
 
           PedidoEntregado:
             Type: Succeed
@@ -209,5 +344,5 @@ resources:
         Targets:
           - Arn: !Sub arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:WorkflowPedido-${sls:stage}
             Id: TargetStateMachine
-            RoleArn: arn:aws:iam::777986470706:role/LabRole
+            RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/LabRole
             InputPath: "$.detail"

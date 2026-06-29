@@ -27,7 +27,7 @@ def handler(event, context):
         pedido = event.get("pedido", event)
         task_token = event.get("taskToken")
 
-        tenant_id = pedido.get("tenant_id", "madam-tusan")
+        tenant_id = pedido.get("tenant_id", "popeyes")
         pedido_id = pedido.get("pedido_id", "desconocido")
 
         # 1. Registrar el paso pendiente

@@ -8,7 +8,7 @@ provider:
   runtime: python3.12
   region: us-east-1
   iam:
-    role: arn:aws:iam::777986470706:role/LabRole
+    role: arn:aws:iam::${aws:accountId}:role/LabRole
   iamRoleStatements:
     - Effect: Allow
       Action:

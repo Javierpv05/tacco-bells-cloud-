@@ -1,1 +1,3 @@
-requests
+# Sin dependencias externas: notificar_oci_task.py usa urllib (stdlib).
+# "requests" se elimino: no habia plugin serverless-python-requirements
+# que lo empaquetara, asi que el import fallaba en runtime (ModuleNotFoundError).

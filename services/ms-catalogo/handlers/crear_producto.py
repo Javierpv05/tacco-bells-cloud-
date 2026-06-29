@@ -12,7 +12,7 @@ def handler(event, context):
     try:
         body = json.loads(event.get("body") or "{}")
 
-        tenant_id = body.get("tenant_id") or "madam-tusan"
+        tenant_id = body.get("tenant_id") or "popeyes"
         nombre = body.get("nombre")
         precio = body.get("precio")
 

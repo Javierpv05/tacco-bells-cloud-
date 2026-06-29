@@ -26,7 +26,7 @@ def handler(event, context):
             return build_response(401, {"error": "No autorizado. Token inválido o ausente."})
 
         user_id = claims.get("sub")
-        tenant_id = claims.get("custom:tenant_id", "madam-tusan")
+        tenant_id = claims.get("custom:tenant_id", "popeyes")
 
         if not user_id:
             return build_response(401, {"error": "Token inválido: falta el claim 'sub'"})

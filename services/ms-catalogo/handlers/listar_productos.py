@@ -11,7 +11,7 @@ tabla = dynamodb.Table(os.environ["TABLE_NAME"])
 def handler(event, context):
     try:
         query_params = event.get("queryStringParameters") or {}
-        tenant_id = query_params.get("tenant_id") or "madam-tusan"
+        tenant_id = query_params.get("tenant_id") or "popeyes"
 
         respuesta = tabla.query(
             KeyConditionExpression=Key("tenant_id").eq(tenant_id)
